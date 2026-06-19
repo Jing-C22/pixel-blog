@@ -1,0 +1,72 @@
+import { parseFrontmatter } from "./frontmatter";
+import type { Post, ZoneConfig, ZoneId } from "./types";
+
+// Vite loads all post markdown as raw strings at build time — no runtime fetch needed.
+const postModules = import.meta.glob("./posts/*.md", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+function slugFromPath(path: string): string {
+  const file = path.split("/").pop() ?? path;
+  return file.replace(/\.md$/, "");
+}
+
+export const posts: Post[] = Object.entries(postModules)
+  .map(([path, raw]) => {
+    const { data, content } = parseFrontmatter(raw);
+    return {
+      slug: slugFromPath(path),
+      title: data.title ?? "Untitled",
+      date: data.date ?? "",
+      zone: (data.zone ?? "hut") as ZoneId,
+      icon: data.icon ?? "📄",
+      excerpt: data.excerpt ?? "",
+      content: content.trim(),
+    } satisfies Post;
+  })
+  .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+export function getPostsByZone(zone: string): Post[] {
+  return posts.filter((p) => p.zone === zone);
+}
+
+export function getPost(slug: string): Post | undefined {
+  return posts.find((p) => p.slug === slug);
+}
+
+export const zones: ZoneConfig[] = [
+  {
+    id: "hut",
+    label: "Home Hut",
+    description: "Start here",
+    x: 22,
+    y: 62,
+    icon: "🏠",
+  },
+  {
+    id: "tower",
+    label: "Thoughts Tower",
+    description: "Essays & longer posts",
+    x: 68,
+    y: 30,
+    icon: "🗼",
+  },
+  {
+    id: "cave",
+    label: "Archive Cave",
+    description: "Older writing",
+    x: 14,
+    y: 28,
+    icon: "🕯️",
+  },
+  {
+    id: "tree",
+    label: "About Tree",
+    description: "Who's behind this",
+    x: 80,
+    y: 68,
+    icon: "🌳",
+  },
+];

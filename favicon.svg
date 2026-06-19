@@ -1,0 +1,40 @@
+/**
+ * Minimal frontmatter parser for our markdown posts.
+ *
+ * We only need flat string/number key-value pairs (title, date, zone, icon,
+ * excerpt), so a tiny hand-rolled parser avoids pulling in gray-matter +
+ * js-yaml (which bundles a Node `buffer` polyfill and a direct `eval` call
+ * we don't want in a static client bundle).
+ */
+export interface ParsedFrontmatter {
+  data: Record<string, string>;
+  content: string;
+}
+
+export function parseFrontmatter(raw: string): ParsedFrontmatter {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!match) {
+    return { data: {}, content: raw.trim() };
+  }
+
+  const [, frontmatterBlock, body] = match;
+  const data: Record<string, string> = {};
+
+  for (const line of frontmatterBlock.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) continue;
+    const key = line.slice(0, colonIndex).trim();
+    let value = line.slice(colonIndex + 1).trim();
+    // strip matching quotes
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    data[key] = value;
+  }
+
+  return { data, content: body.trim() };
+}

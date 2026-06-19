@@ -1,0 +1,22 @@
+export type ZoneId = "hut" | "tower" | "cave" | "tree";
+
+export interface Post {
+  slug: string;
+  title: string;
+  date: string;
+  zone: ZoneId;
+  icon: string;
+  excerpt: string;
+  content: string;
+}
+
+export interface ZoneConfig {
+  id: ZoneId;
+  label: string;
+  description: string;
+  /** position as percentage of the world layer, so it scales responsively */
+  x: number;
+  y: number;
+  /** sprite emoji fallback (we render real pixel sprites in CSS, this is a backup/label icon) */
+  icon: string;
+}

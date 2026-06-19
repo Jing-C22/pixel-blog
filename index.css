@@ -1,0 +1,49 @@
+import type { WindowState } from "../hooks/useWindowManager";
+import { sfx, setMuted } from "../utils/sfx";
+import { useState } from "react";
+
+interface TaskbarProps {
+  windows: WindowState[];
+  onRestore: (id: string) => void;
+}
+
+export function Taskbar({ windows, onRestore }: TaskbarProps) {
+  const [muted, setMutedState] = useState(false);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    setMutedState(next);
+    sfx.toggleMute(next);
+  };
+
+  return (
+    <div className="taskbar pixel-panel">
+      <div className="taskbar-brand pixel-text">★ pixel.isle</div>
+      <div className="taskbar-windows">
+        {windows
+          .filter((w) => w.minimized)
+          .map((w) => (
+            <button
+              key={w.id}
+              type="button"
+              className="taskbar-item"
+              onClick={() => onRestore(w.id)}
+            >
+              <span>{w.icon}</span> {w.title}
+            </button>
+          ))}
+      </div>
+      <button
+        type="button"
+        className="taskbar-mute"
+        onClick={toggleMute}
+        aria-pressed={muted}
+        aria-label={muted ? "Unmute sound" : "Mute sound"}
+        title={muted ? "Unmute sound" : "Mute sound"}
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
+    </div>
+  );
+}
